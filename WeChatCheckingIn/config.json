@@ -1,0 +1,58 @@
+[
+  {
+    "label": "上班打卡时间",
+    "name": "checkingTime",
+    "type": "time",
+    "value": "09:00",
+    "validation": "required"
+  },
+  {
+    "label": "是否开启上班快捷打卡",
+    "type": "radio",
+    "name": "quickChecking",
+    "options": {
+      "0": "否",
+      "1": "是"
+    },
+    "value": "0",
+    "help": "默认 否，指企业微信上是否开启了自动打卡，开启后，打开企业微信会自动打卡",
+    "validation": "required"
+  },
+  {
+    "label": "每一步操作的时间间隔",
+    "name": "stepInterval",
+    "value": "2000",
+    "help": "默认 2000，单位：ms，视机型调整",
+    "validation": "required"
+  },
+  {
+    "label": "是否在手机端显示控制台",
+    "name": "isShowConsoleInPhone",
+    "type": "radio",
+    "options": {
+      "0": "否",
+      "1": "是"
+    },
+    "value": "1",
+    "help": "开启后，运行时会在移动端打开一个悬浮窗口，显示日志信息，该功能需在移动端开启悬浮窗口权限",
+    "validation": "required"
+  },
+  {
+    "label": "Push Plus Token",
+    "name": "pushPlusToken",
+    "placeholder":"abc123defg4567higk89",
+    "help": "用于远程推送日志，官网：http://www.pushplus.plus/doc/guide/api.html，为空则表示不发送"
+  },
+  {
+    "label": "ServerChan SendKey",
+    "name": "chanSendKey",
+    "placeholder":"SCT123ABC456DEF789GHI",
+    "help": "用于远程推送日志，为空则表示不发送"
+  },
+  {
+    "label": "输入 Bark 地址",
+    "name": "barkUrl",
+    "placeholder":"https://api.day.app/xxxxxxxxxxxxxxx/",
+    "help": "用于远程推送日志，为空则表示不发送"
+  }
+]

@@ -1,7 +1,7 @@
 /*
  * @Author: Ray
  * @Date: 2021-10-31 17:43:21
- * @LastEditTime: 2021-11-01 00:41:09
+ * @LastEditTime: 2021-11-01 15:07:11
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \Ray.HamibotScripts\Common\test.js
@@ -29,6 +29,14 @@ logger.log('测试');
 logger.pushAllLogs();
 
 
+/*
+ * @Author: Ray
+ * @Date: 2021-10-31 16:44:42
+ * @LastEditTime: 2021-11-01 15:07:01
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: \Ray.HamibotScripts\Common\raylog.js
+ */
 function RayHamiLog(scriptName) {
     const {
         PUSH_PLUS_TOKEN,
@@ -42,14 +50,27 @@ function RayHamiLog(scriptName) {
 
     this.logMsgList = new Array();
 
+    /**
+     * @description: 记录日志
+     * @param {string} msg 日志信息
+     * @return {*}
+     */
     this.log = function (msg) {
         toastLog(msg);//以气泡显示信息几秒，同时也会输出到控制台
         //console.log(msg);//发送到控制台
         hamibot.postMessage(msg); //发送到控制台的脚本消息
 
         this.logMsgList.push(msg);//加到缓存里，用作最后的远端推送
-    }
+    };
 
+
+    /**
+     * @description: 推送所有日志
+     * @param {*} title 标题
+     * @param {*} params
+     * @param {*} author 作者信息
+     * @return {*}
+     */
     this.pushAllLogs = function (title, params, author) {
         if (!title) title = this.defaultTitle;
         if (!params) params = {};
@@ -72,13 +93,28 @@ function RayHamiLog(scriptName) {
         this.log('日志推送结束');
     };
 
+
+    /**
+     * @description: 推送消息
+     * @param {*} title 标题
+     * @param {*} msg 消息
+     * @param {*} params
+     * @return {*}
+     */
     this.pushMsg = function (title, msg, params) {
         Promise.all([
             this.pushPlusNotify(title, msg),
             this.serverNotify(title, msg)
         ]);
-    }
+    };
 
+
+    /**
+     * @description: 推送到pushplus
+     * @param {*} title 标题
+     * @param {*} desp 消息
+     * @return {*}
+     */
     this.pushPlusNotify = function (title, desp) {
         return new Promise(resolve => {
             if (PUSH_PLUS_TOKEN) {
@@ -96,14 +132,16 @@ function RayHamiLog(scriptName) {
                 try {
                     res = http.postJson(url, body);
                     if (res.statusCode != 200) {
-                        console.log('push+发送' + (PUSH_PLUS_USER ? '一对多' : '一对一') + '通知消息失败！！\n')
+                        console.log('push+发送' + (PUSH_PLUS_USER ? '一对多' : '一对一') + '通知消息失败！！\n');
+                        console.log('statusCode：' + res.statusCode);
+                        console.log('body' + res.body.json());
                     }
                     else {
                         let data = res.body.json();
                         if (data.code === 200) {
-                            console.log('push+发送' + (PUSH_PLUS_USER ? '一对多' : '一对一') + '通知消息成功！！\n')
+                            console.log('push+发送' + (PUSH_PLUS_USER ? '一对多' : '一对一') + '通知消息成功！！\n');
                         } else {
-                            console.log('push+发送' + (PUSH_PLUS_USER ? '一对多' : '一对一') + '通知消息失败！！\n')
+                            console.log('push+发送' + (PUSH_PLUS_USER ? '一对多' : '一对一') + '通知消息失败:' + data.msg + '\n');
                         }
                     }
                 }
@@ -116,11 +154,19 @@ function RayHamiLog(scriptName) {
             }
             else {
                 resolve(res);
-                console.log('您未提供push+推送所需的PUSH_PLUS_TOKEN，取消push+推送消息通知🚫\n');
+                //console.log('您未提供push+推送所需的PUSH_PLUS_TOKEN，取消push+推送消息通知🚫\n');
             }
         })
     };
 
+
+    /**
+     * @description: 推送到server酱
+     * @param {*} title 标题
+     * @param {*} desp 消息
+     * @param {*} time 超时时间
+     * @return {*}
+     */
     this.serverNotify = function (title, desp, time) {
         if (!time) time = 2100;
         return new Promise(resolve => {
@@ -131,7 +177,7 @@ function RayHamiLog(scriptName) {
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded'
                     }
-                }
+                };
                 let url = SCKEY.includes('SCT') ?
                     ('https://sctapi.ftqq.com/' + SCKEY + '.send')
                     : ('https://sc.ftqq.com/' + SCKEY + '.send');
@@ -171,32 +217,86 @@ function RayHamiLog(scriptName) {
                 resolve()
             }
         })
-    }
+    };
 
-    this.barkNotify = function BarkNotify(text, desp, params) {
-    }
 
-    this.tgBotNotify=function(text, desp){
+    /**
+     * @description: 推送到Bark
+     * @param {*} text
+     * @param {*} desp
+     * @param {*} params
+     * @return {*}
+     */
+    this.barkNotify = function (text, desp, params) {
+    };
 
-    }
 
-    this.ddBotNotify=function(text, desp){
+    /**
+     * @description: 推送到Telegram
+     * @param {*} text
+     * @param {*} desp
+     * @return {*}
+     */
+    this.tgBotNotify = function (text, desp) {
 
-    }
+    };
 
-    this.qywxBotNotify=function(text, desp){
 
-    }
+    /**
+     * @description: 推送到钉钉机器人
+     * @param {*} text
+     * @param {*} desp
+     * @return {*}
+     */
+    this.ddBotNotify = function (text, desp) {
 
-    this.qywxamNotify=function(text, desp){
+    };
 
-    }
 
-    this.iGotNotify=function(text, desp, params){
+    /**
+     * @description: 推送到企业微信机器人
+     * @param {*} text
+     * @param {*} desp
+     * @return {*}
+     */
+    this.qywxBotNotify = function (text, desp) {
 
-    }
+    };
 
-    this.coolPush=function(text, desp){
 
-    }
+    /**
+     * @description: 推送到企业微信通道
+     * @param {*} text
+     * @param {*} desp
+     * @return {*}
+     */
+    this.qywxamNotify = function (text, desp) {
+
+    };
+
+
+    /**
+     * @description: 推送到iGot
+     * @param {*} text
+     * @param {*} desp
+     * @param {*} params
+     * @return {*}
+     */
+    this.iGotNotify = function (text, desp, params) {
+
+    };
+
+
+    /**
+     * @description: 推送到酷推
+     * @param {*} text
+     * @param {*} desp
+     * @return {*}
+     */
+    this.coolPush = function (text, desp) {
+
+    };
 }
+
+
+//exports.RayHamiLog = RayHamiLog;

@@ -73,11 +73,10 @@ function RayHamiLog(scriptName) {
     };
 
     this.pushMsg = function (title, msg, params) {
-        //提供6种通知
         Promise.all([
             this.pushPlusNotify(title, msg),
             this.serverNotify(title, msg)
-        ])
+        ]);
     }
 
     this.pushPlusNotify = function (title, desp) {
@@ -172,5 +171,32 @@ function RayHamiLog(scriptName) {
                 resolve()
             }
         })
+    }
+
+    this.barkNotify = function BarkNotify(text, desp, params) {
+    }
+
+    this.tgBotNotify=function(text, desp){
+
+    }
+
+    this.ddBotNotify=function(text, desp){
+
+    }
+
+    this.qywxBotNotify=function(text, desp){
+
+    }
+
+    this.qywxamNotify=function(text, desp){
+
+    }
+
+    this.iGotNotify=function(text, desp, params){
+
+    }
+
+    this.coolPush=function(text, desp){
+
     }
 }

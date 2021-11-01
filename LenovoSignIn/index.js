@@ -1,7 +1,7 @@
 /*
  * @Author: Ray
  * @Date: 2021-11-01 10:28:13
- * @LastEditTime: 2021-11-01 17:21:20
+ * @LastEditTime: 2021-11-01 17:24:21
  * @LastEditors: Please set LastEditors
  * @Description: 联想智选每日签到
  * @FilePath: \Ray.HamibotScripts\LenovoSignIn\index.js

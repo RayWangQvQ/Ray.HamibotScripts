@@ -1,10 +1,10 @@
 /*
  * @Author: Ray
  * @Date: 2021-10-31 17:43:21
- * @LastEditTime: 2021-11-01 15:07:11
+ * @LastEditTime: 2021-11-01 17:08:46
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
- * @FilePath: \Ray.HamibotScripts\Common\test.js
+ * @FilePath: \Ray.HamibotScripts\Common\Test\RayHamiLogTest.js
  */
 auto.waitFor();
 

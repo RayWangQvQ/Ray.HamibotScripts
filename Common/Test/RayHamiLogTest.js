@@ -1,7 +1,7 @@
 /*
  * @Author: Ray
  * @Date: 2021-10-31 17:43:21
- * @LastEditTime: 2021-11-01 17:08:46
+ * @LastEditTime: 2021-11-01 21:57:29
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \Ray.HamibotScripts\Common\Test\RayHamiLogTest.js
@@ -26,15 +26,26 @@ var logger = new RayHamiLog();
 logger.log(1);
 logger.log(2);
 logger.log('测试');
+
+try{
+    console.log(meiyou);
+}
+catch(e){
+    logger.logException(e);
+}
+
+
 logger.pushAllLogs();
+
+
 
 
 /*
  * @Author: Ray
  * @Date: 2021-10-31 16:44:42
- * @LastEditTime: 2021-11-01 15:07:01
+ * @LastEditTime: 2021-11-01 21:48:40
  * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
+ * @Description: 多端日志
  * @FilePath: \Ray.HamibotScripts\Common\raylog.js
  */
 function RayHamiLog(scriptName) {
@@ -57,11 +68,17 @@ function RayHamiLog(scriptName) {
      */
     this.log = function (msg) {
         toastLog(msg);//以气泡显示信息几秒，同时也会输出到控制台
-        //console.log(msg);//发送到控制台
+        //this.log(msg);//发送到控制台
         hamibot.postMessage(msg); //发送到控制台的脚本消息
 
         this.logMsgList.push(msg);//加到缓存里，用作最后的远端推送
     };
+
+    
+    this.logException=function(e){
+        let msg=JSON.stringify(e);
+        this.log(msg);
+    }
 
 
     /**
@@ -76,7 +93,7 @@ function RayHamiLog(scriptName) {
         if (!params) params = {};
         if (!author) author = this.defaultAuthor;
 
-        this.log('开始推送日志：');
+        this.log('开始推送日志');
 
         if (this.logMsgList.length <= 0) return;
 
@@ -132,21 +149,22 @@ function RayHamiLog(scriptName) {
                 try {
                     res = http.postJson(url, body);
                     if (res.statusCode != 200) {
-                        console.log('push+发送' + (PUSH_PLUS_USER ? '一对多' : '一对一') + '通知消息失败！！\n');
-                        console.log('statusCode：' + res.statusCode);
-                        console.log('body' + res.body.json());
+                        this.log('push+发送' + (PUSH_PLUS_USER ? '一对多' : '一对一') + '通知消息失败！！\n');
+                        this.log('statusCode：' + res.statusCode);
+                        this.log('body' + res.body.json());
                     }
                     else {
                         let data = res.body.json();
                         if (data.code === 200) {
-                            console.log('push+发送' + (PUSH_PLUS_USER ? '一对多' : '一对一') + '通知消息成功！！\n');
+                            this.log('push+发送' + (PUSH_PLUS_USER ? '一对多' : '一对一') + '通知消息成功！！\n');
                         } else {
-                            console.log('push+发送' + (PUSH_PLUS_USER ? '一对多' : '一对一') + '通知消息失败:' + data.msg + '\n');
+                            this.log('push+发送' + (PUSH_PLUS_USER ? '一对多' : '一对一') + '通知消息失败:' + data.msg + '\n');
                         }
                     }
                 }
                 catch (e) {
-                    console.log(e, resp);
+                    this.log('异常：' + JSON.parse(e));
+                    this.log('返回：' + JSON.parse(res));
                 }
                 finally {
                     resolve(res);
@@ -154,7 +172,7 @@ function RayHamiLog(scriptName) {
             }
             else {
                 resolve(res);
-                //console.log('您未提供push+推送所需的PUSH_PLUS_TOKEN，取消push+推送消息通知🚫\n');
+                //this.log('您未提供push+推送所需的PUSH_PLUS_TOKEN，取消push+推送消息通知🚫\n');
             }
         })
     };
@@ -181,39 +199,42 @@ function RayHamiLog(scriptName) {
                 let url = SCKEY.includes('SCT') ?
                     ('https://sctapi.ftqq.com/' + SCKEY + '.send')
                     : ('https://sc.ftqq.com/' + SCKEY + '.send');
-                let body = 'text=' + title + '&desp=' + 'desp';
-                setTimeout(() => {
-                    let res;
-                    try {
-                        res = http.post(url, body, options);
-                        if (res.statusCode != 200) {
-                            console.log('发送通知调用API失败！！\n')
+                let body = {
+                    text: title,
+                    desp: desp
+                };
+                let res;
+                try {
+                    res = http.post(url, body, options);
+                    if (res.statusCode != 200) {
+                        this.log('请求server酱接口失败，statusCode：' + res.statusCode + '\n');
+                        this.log('返回：' + res.body.string());
+                    }
+                    else {
+                        let data = res.body.json();
+                        //server酱和Server酱·Turbo版的返回json格式不太一样
+                        if (data.errno === 0 || data.data.errno === 0) {
+                            this.log('server酱发送通知消息成功🎉\n')
+                        }
+                        else if (data.errno === 1024) {
+                            // 一分钟内发送相同的内容会触发
+                            this.log('server酱发送通知消息异常: ' + data.errmsg + '\n')
                         }
                         else {
-                            let data = res.body.json();
-                            //server酱和Server酱·Turbo版的返回json格式不太一样
-                            if (data.errno === 0 || data.data.errno === 0) {
-                                console.log('server酱发送通知消息成功🎉\n')
-                            }
-                            else if (data.errno === 1024) {
-                                // 一分钟内发送相同的内容会触发
-                                console.log('server酱发送通知消息异常: ' + data.errmsg + '\n')
-                            }
-                            else {
-                                console.log('server酱发送通知消息异常\n' + JSON.stringify(data))
-                            }
+                            this.log('server酱发送通知消息异常\n' + JSON.stringify(data))
                         }
                     }
-                    catch (e) {
-                        console.log(e, resp);
-                    }
-                    finally {
-                        resolve(res);
-                    }
-                }, time)
+                }
+                catch (e) {
+                    this.log('异常：' + JSON.parse(e));
+                    this.log('返回：' + JSON.parse(res));
+                }
+                finally {
+                    resolve(res);
+                }
             }
             else {
-                //console.log('\n\n您未提供server酱的SCKEY，取消微信推送消息通知🚫\n');
+                this.log('\n\n您未提供server酱的SCKEY，取消微信推送消息通知🚫\n');
                 resolve()
             }
         })

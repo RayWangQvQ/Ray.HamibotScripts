@@ -1,8 +1,8 @@
 /*
  * @Author: Ray
  * @Date: 2021-10-31 16:44:42
- * @LastEditTime: 2021-11-01 16:37:35
- * @LastEditors: Ray
+ * @LastEditTime: 2021-11-01 22:04:37
+ * @LastEditors: Please set LastEditors
  * @Description: 多端日志
  * @FilePath: \Ray.HamibotScripts\Common\raylog.js
  */
@@ -30,6 +30,12 @@ function RayHamiLog(scriptName) {
         hamibot.postMessage(msg); //发送到控制台的脚本消息
 
         this.logMsgList.push(msg);//加到缓存里，用作最后的远端推送
+    };
+
+
+    this.logException=function(e){
+        let msg=JSON.stringify(e);
+        this.log(msg);
     };
 
 
@@ -186,7 +192,7 @@ function RayHamiLog(scriptName) {
                 }
             }
             else {
-                this.log('\n\n您未提供server酱的SCKEY，取消微信推送消息通知🚫\n');
+                //this.log('\n\n您未提供server酱的SCKEY，取消微信推送消息通知🚫\n');
                 resolve()
             }
         })

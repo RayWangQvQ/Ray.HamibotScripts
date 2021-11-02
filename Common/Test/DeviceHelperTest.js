@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-11-01 17:09:07
- * @LastEditTime: 2021-11-01 23:30:53
+ * @LastEditTime: 2021-11-02 23:36:30
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \Ray.HamibotScripts\Common\Test\DeviceHelperTest.js
@@ -10,7 +10,9 @@
 auto.waitFor();
 
 var deviceHelper = new DeviceHelper();
-deviceHelper.unlockBySlide();
+deviceHelper.unlockDevice();
+
+console.show();
 
 app.launchApp('微信');
 deviceHelper.findAndClick('通讯录');
@@ -20,10 +22,11 @@ hamibot.exit();
 
 
 
+
 /*
  * @Author: Ray
  * @Date: 2021-11-01 16:53:42
- * @LastEditTime: 2021-11-01 22:14:27
+ * @LastEditTime: 2021-11-02 23:20:18
  * @LastEditors: Please set LastEditors
  * @Description: 设备帮助类
  * @FilePath: \Ray.HamibotScripts\Common\DeviceHelper.js
@@ -31,41 +34,100 @@ hamibot.exit();
 function DeviceHelper(scriptName) {
 
     const {
-        stepInterval
+        stepInterval,
+        SLIDE_COUNT,
+        SLIDE_DURATION,
+        PWD_COORDINATES_STR
     } = hamibot.env;
 
     if (!stepInterval) stepInterval = 1000;
 
     this.logger = new RayHamiLog(scriptName);
 
+    this.unlockDevice = function () {
+        //点亮并滑动
+        this.unlockBySlide();
+        sleep(3000);
+        this.unlockByPwd();
+    }
+
     /**
      * @description: 滑动解锁（未点亮屏幕的话会先点亮，滑动坐标：以左上角为原点，从屏幕中间，纵坐标从下往上，由0.8y滑到0.2y处）
      */
-    this.unlockBySlide = function () {
+    this.unlockBySlide = function (slideDuration, slideCount) {
+        if (!slideDuration) slideDuration = !SLIDE_DURATION ? 500 : SLIDE_DURATION;
+        if (!slideCount) slideCount = !SLIDE_COUNT ? 1 : SLIDE_COUNT;
+
+        this.logger.log(slideDuration);
+
         device.wakeUpIfNeeded();
         sleep(1000);
 
-        let {
+        var {
             height,
             width
         } = device;
 
-        let xStart = width / 2;
-        let xEnd = xStart + 5;
-        let yStart = height * 0.8;
-        let yEnd = height * 0.2;
+        var xStart = width / 2;
+        var xEnd = xStart + 5;
+        var yStart = height * 0.8;
+        var yEnd = height * 0.2;
+        while (slideCount--) {
+            this.logger.log('滑动');
+            //swipe(xStart, yStart, xEnd, yEnd, slideDuration);
+            swipe(device.width / 2, device.height * 0.8, device.width / 2, device.height * 0.2, slideDuration)
+        }
+    };
 
-        let duration = 500;
+    /**
+     * @description: 密码解锁
+     * @param {*} pwdCoordinatesStr 密码的坐标字符串
+     * @return {*}
+     */
+    this.unlockByPwd = function (pwdCoordinatesStr) {
+        if (!pwdCoordinatesStr) pwdCoordinatesStr = PWD_COORDINATES_STR;
+        if (!pwdCoordinatesStr || pwdCoordinatesStr.length < 1) {
+            this.logger.log('配置的密码坐标为空，结束流程');
+            return;
+        }
 
-        swipe(xStart, yStart, xEnd, yEnd, duration);
+        //解析坐标字符串为数组
+        let pwd_array = new Array();
+        pwd_array = pwdCoordinatesStr.split('\n');
+        var two_text;
+        for (i = 0; i < pwd_array.length; i++) {
+            two_text = pwd_array[i].split(',');
+            pwd_array[i] = new Array();
+            pwd_array[i][0] = two_text[0];
+            pwd_array[i][1] = two_text[1];
+        }
+
+        //唤醒设备
+        device.wakeUpIfNeeded();
+        sleep(1000);
+
+        //点击坐标
+        for (i = 0; i < pwd_array.length; i++) {
+            click(Number(pwd_array[i][0]), Number(pwd_array[i][1]));
+            sleep(1000);
+        }
     }
 
-    this.findAndClick = function (matchText, matchType) {
+
+    /**
+     * @description: 匹配并点击
+     * @param {*} matchText 匹配文字
+     * @param {*} matchType 匹配类型（text、textContains、textStartsWith、textMatches）
+     * @param {*} tryBackCount 尝试回退次数
+     * @return {*}
+     */
+    this.findAndClick = function (matchText, matchType, tryBackCount) {
+        if (!tryBackCount) tryBackCount = 3;
         sleep(1000);
-        this.logger.log('开始匹配【' + matchText + '】')
+        this.logger.log('开始匹配【' + matchText + '】');
         let tryCount = 1;
         let uiObj = this.findText(matchText, matchType);
-        while (uiObj == null && tryCount <= 3) {
+        while (uiObj == null && tryCount <= tryBackCount) {
             sleep(1000);
             this.logger.log('未找到，尝试第' + tryCount + '次回退');
             back();
@@ -92,8 +154,15 @@ function DeviceHelper(scriptName) {
             this.logger.log('匹配失败');
         }
         return false;
-    }
+    };
 
+
+    /**
+     * @description: 匹配文字
+     * @param {*} matchText 匹配的文字
+     * @param {*} matchType 匹配类型（text、textContains、textStartsWith、textMatches）
+     * @return {UiObject}
+     */
     this.findText = function (matchText, matchType) {
         try {
             let matchTypes = new SelectorTextMatchType();
@@ -106,7 +175,7 @@ function DeviceHelper(scriptName) {
             this.logger.logException(e);
         }
         return null;
-    }
+    };
 
     function SelectorTextMatchType() {
         this.text = 'text';
@@ -117,6 +186,5 @@ function DeviceHelper(scriptName) {
 }
 
 function RayHamiLog(scriptName) { const { PUSH_PLUS_TOKEN, PUSH_PLUS_USER, SCKEY } = hamibot.env; this.scriptName = scriptName; this.defaultAuthor = '\n\n by Ray'; this.defaultTitle = this.scriptName ? this.scriptName : '推送-' + new Date(); this.logMsgList = new Array(); this.log = function (msg) { toastLog(msg); hamibot.postMessage(msg); this.logMsgList.push(msg) }; this.logException = function (e) { let msg = JSON.stringify(e); this.log(msg) }; this.pushAllLogs = function (title, params, author) { if (!title) title = this.defaultTitle; if (!params) params = {}; if (!author) author = this.defaultAuthor; this.log('开始推送日志'); if (this.logMsgList.length <= 0) return; let msg = ""; this.logMsgList.forEach(element => { msg = msg + element + '\n' }); msg += author; this.pushMsg(title, msg, params); this.log('日志推送结束') }; this.pushMsg = function (title, msg, params) { Promise.all([this.pushPlusNotify(title, msg), this.serverNotify(title, msg)]) }; this.pushPlusNotify = function (title, desp) { return new Promise(resolve => { if (PUSH_PLUS_TOKEN) { var url = 'http://www.pushplus.plus/send'; desp = desp.replace(/[\n\r]/g, '<br>'); const body = { token: PUSH_PLUS_TOKEN, title: title, content: desp, topic: PUSH_PLUS_USER }; let res; try { res = http.postJson(url, body); if (res.statusCode != 200) { this.log('push+发送' + (PUSH_PLUS_USER ? '一对多' : '一对一') + '通知消息失败！！\n'); this.log('statusCode：' + res.statusCode); this.log('body' + res.body.json()) } else { let data = res.body.json(); if (data.code === 200) { this.log('push+发送' + (PUSH_PLUS_USER ? '一对多' : '一对一') + '通知消息成功！！\n') } else { this.log('push+发送' + (PUSH_PLUS_USER ? '一对多' : '一对一') + '通知消息失败:' + data.msg + '\n') } } } catch (e) { this.log('异常：' + JSON.parse(e)); this.log('返回：' + JSON.parse(res)) } finally { resolve(res) } } else { resolve(res) } }) }; this.serverNotify = function (title, desp, time) { if (!time) time = 2100; return new Promise(resolve => { if (SCKEY) { desp = desp.replace(/[\n\r]/g, '\n\n'); const options = { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }; let url = SCKEY.includes('SCT') ? ('https://sctapi.ftqq.com/' + SCKEY + '.send') : ('https://sc.ftqq.com/' + SCKEY + '.send'); let body = { text: title, desp: desp }; let res; try { res = http.post(url, body, options); if (res.statusCode != 200) { this.log('请求server酱接口失败，statusCode：' + res.statusCode + '\n'); this.log('返回：' + res.body.string()) } else { let data = res.body.json(); if (data.errno === 0 || data.data.errno === 0) { this.log('server酱发送通知消息成功🎉\n') } else if (data.errno === 1024) { this.log('server酱发送通知消息异常: ' + data.errmsg + '\n') } else { this.log('server酱发送通知消息异常\n' + JSON.stringify(data)) } } } catch (e) { this.log('异常：' + JSON.parse(e)); this.log('返回：' + JSON.parse(res)) } finally { resolve(res) } } else { resolve() } }) }; this.barkNotify = function (text, desp, params) { }; this.tgBotNotify = function (text, desp) { }; this.ddBotNotify = function (text, desp) { }; this.qywxBotNotify = function (text, desp) { }; this.qywxamNotify = function (text, desp) { }; this.iGotNotify = function (text, desp, params) { }; this.coolPush = function (text, desp) { } }
-
 
 

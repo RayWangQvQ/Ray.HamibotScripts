@@ -1,7 +1,7 @@
 /*
  * @Author: Ray
  * @Date: 2021-11-01 16:53:42
- * @LastEditTime: 2021-11-02 18:01:35
+ * @LastEditTime: 2021-11-02 23:20:18
  * @LastEditors: Please set LastEditors
  * @Description: 设备帮助类
  * @FilePath: \Ray.HamibotScripts\Common\DeviceHelper.js
@@ -10,6 +10,8 @@ function DeviceHelper(scriptName) {
 
     const {
         stepInterval,
+        SLIDE_COUNT,
+        SLIDE_DURATION,
         PWD_COORDINATES_STR
     } = hamibot.env;
 
@@ -17,16 +19,21 @@ function DeviceHelper(scriptName) {
 
     this.logger = new RayHamiLog(scriptName);
 
-    this.unlockDevice=function(){
-        
+    this.unlockDevice = function () {
+        //点亮并滑动
+        this.unlockBySlide();
+        this.unlockByPwd();
     }
 
     /**
      * @description: 滑动解锁（未点亮屏幕的话会先点亮，滑动坐标：以左上角为原点，从屏幕中间，纵坐标从下往上，由0.8y滑到0.2y处）
      */
-    this.unlockBySlide = function () {
+    this.unlockBySlide = function (slideDuration, slideCount) {
+        if (!slideDuration) slideDuration = !SLIDE_DURATION ? 500 : SLIDE_DURATION;
+        if (!slideCount) slideCount = !SLIDE_COUNT ? 1 : SLIDE_COUNT;
+
         device.wakeUpIfNeeded();
-        sleep(1000);
+        sleep(500);
 
         let {
             height,
@@ -37,10 +44,9 @@ function DeviceHelper(scriptName) {
         let xEnd = xStart + 5;
         let yStart = height * 0.8;
         let yEnd = height * 0.2;
-
-        let duration = 500;
-
-        swipe(xStart, yStart, xEnd, yEnd, duration);
+        while (slideCount--) {
+            swipe(xStart, yStart, xEnd, yEnd, slideDuration);
+        }
     };
 
     /**
@@ -50,20 +56,20 @@ function DeviceHelper(scriptName) {
      */
     this.unlockByPwd = function (pwdCoordinatesStr) {
         if (!pwdCoordinatesStr) pwdCoordinatesStr = PWD_COORDINATES_STR;
-        if(!pwdCoordinatesStr||pwdCoordinatesStr.length<1){
+        if (!pwdCoordinatesStr || pwdCoordinatesStr.length < 1) {
             this.logger.log('配置的密码坐标为空，结束流程');
             return;
         }
 
         //解析坐标字符串为数组
-        let pwd_array=new Array();
-        pwd_array = pwdCoordinatesStr.split(';');
+        let pwd_array = new Array();
+        pwd_array = pwdCoordinatesStr.split('\n');
         var two_text;
-        for (i = 0; i < two_dimensional.length; i++) {
-            two_text = two_dimensional[i].split(',');
-            two_dimensional[i] = new Array();
-            two_dimensional[i][0] = two_text[0];
-            two_dimensional[i][1] = two_text[1];
+        for (i = 0; i < pwd_array.length; i++) {
+            two_text = pwd_array[i].split(',');
+            pwd_array[i] = new Array();
+            pwd_array[i][0] = two_text[0];
+            pwd_array[i][1] = two_text[1];
         }
 
         //唤醒设备

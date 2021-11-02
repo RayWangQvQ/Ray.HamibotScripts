@@ -1,7 +1,7 @@
 /*
  * @Author: Ray
  * @Date: 2021-11-01 16:53:42
- * @LastEditTime: 2021-11-01 23:44:21
+ * @LastEditTime: 2021-11-02 18:01:35
  * @LastEditors: Please set LastEditors
  * @Description: 设备帮助类
  * @FilePath: \Ray.HamibotScripts\Common\DeviceHelper.js
@@ -9,12 +9,17 @@
 function DeviceHelper(scriptName) {
 
     const {
-        stepInterval
+        stepInterval,
+        PWD_COORDINATES_STR
     } = hamibot.env;
 
     if (!stepInterval) stepInterval = 1000;
 
     this.logger = new RayHamiLog(scriptName);
+
+    this.unlockDevice=function(){
+        
+    }
 
     /**
      * @description: 滑动解锁（未点亮屏幕的话会先点亮，滑动坐标：以左上角为原点，从屏幕中间，纵坐标从下往上，由0.8y滑到0.2y处）
@@ -39,12 +44,47 @@ function DeviceHelper(scriptName) {
     };
 
     /**
+     * @description: 密码解锁
+     * @param {*} pwdCoordinatesStr 密码的坐标字符串
+     * @return {*}
+     */
+    this.unlockByPwd = function (pwdCoordinatesStr) {
+        if (!pwdCoordinatesStr) pwdCoordinatesStr = PWD_COORDINATES_STR;
+        if(!pwdCoordinatesStr||pwdCoordinatesStr.length<1){
+            this.logger.log('配置的密码坐标为空，结束流程');
+            return;
+        }
+
+        //解析坐标字符串为数组
+        let pwd_array=new Array();
+        pwd_array = pwdCoordinatesStr.split(';');
+        var two_text;
+        for (i = 0; i < two_dimensional.length; i++) {
+            two_text = two_dimensional[i].split(',');
+            two_dimensional[i] = new Array();
+            two_dimensional[i][0] = two_text[0];
+            two_dimensional[i][1] = two_text[1];
+        }
+
+        //唤醒设备
+        device.wakeUpIfNeeded();
+        sleep(1000);
+
+        //点击坐标
+        for (i = 0; i < pwd_array.length; i++) {
+            click(Number(pwd_array[i][0]), Number(pwd_array[i][1]));
+            sleep(1000);
+        }
+    }
+
+
+    /**
      * @description: 匹配并点击
      * @param {*} matchText 匹配文字
      * @param {*} matchType 匹配类型（text、textContains、textStartsWith、textMatches）
      * @param {*} tryBackCount 尝试回退次数
      * @return {*}
-     */    
+     */
     this.findAndClick = function (matchText, matchType, tryBackCount) {
         if (!tryBackCount) tryBackCount = 3;
         sleep(1000);

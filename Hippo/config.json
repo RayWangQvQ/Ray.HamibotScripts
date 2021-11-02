@@ -1,0 +1,33 @@
+[
+  {
+    "label": "每一步操作的时间间隔",
+    "name": "stepInterval",
+    "value": "2000",
+    "help": "默认 2000，单位：ms，视机型调整",
+    "validation": "required"
+  },
+  {
+    "label": "是否在手机端显示控制台",
+    "name": "isShowConsoleInPhone",
+    "type": "radio",
+    "options": {
+      "0": "否",
+      "1": "是"
+    },
+    "value": "1",
+    "help": "开启后，运行时会在移动端打开一个悬浮窗口，显示日志信息，该功能需在移动端开启悬浮窗口权限",
+    "validation": "required"
+  },
+  {
+    "label": "Push Plus Token",
+    "name": "PUSH_PLUS_TOKEN",
+    "placeholder": "abc123defg4567higk89",
+    "help": "用于远程推送日志，官网：http://www.pushplus.plus/doc/guide/api.html，为空则表示不发送"
+  },
+  {
+    "label": "ServerChan SendKey",
+    "name": "SCKEY",
+    "placeholder": "SCT123ABC456DEF789GHI",
+    "help": "用于远程推送日志，为空则表示不发送"
+  }
+]

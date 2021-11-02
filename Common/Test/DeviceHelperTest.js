@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-11-01 17:09:07
- * @LastEditTime: 2021-11-02 23:36:30
+ * @LastEditTime: 2021-11-03 00:18:00
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \Ray.HamibotScripts\Common\Test\DeviceHelperTest.js
@@ -10,7 +10,7 @@
 auto.waitFor();
 
 var deviceHelper = new DeviceHelper();
-deviceHelper.unlockDevice();
+//deviceHelper.unlockDevice();
 
 console.show();
 
